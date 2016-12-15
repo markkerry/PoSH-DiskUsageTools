@@ -1,10 +1,16 @@
-﻿function Get-LastBootTime {
+function Get-LastBootTime {
     <#
     .Synopsis
         Finds the last boot time of specified computers.
     .DESCRIPTION
         It checks the WMI LastBootUpTime object.
+    .PARAMETER ComputerName
+        The computer(s) you would like to target.
     .EXAMPLE
+        To import the function
+
+        . .\Get-LastBootTime.ps1
+    .EXAMPLE    
         To query a single machine.
 
         Get-LastBootTime -ComputerName HOSTNAME
@@ -37,26 +43,27 @@
         foreach ($Computer in $ComputerName) {
             # Check if online
             if (Test-Connection -ComputerName $Computer -count 1 -quiet) {
-                # Query WMI for the last boot time and add to a PsCustomObject
+                # Query WMI for the last boot time and set the boot variable
                 try {
                     $LastBootUpTime = Get-WmiObject Win32_OperatingSystem -ComputerName $Computer | Select -Exp LastBootUpTime -ErrorAction Stop
                     $Boot = [System.Management.ManagementDateTimeConverter]::ToDateTime($LastBootUpTime)
-                    [PsCustomObject]@{
-                        ComputerDisplayName = $Computer
-                        LastBootUpTime = $Boot
-                    }
                 }
                 catch {
-                    Write-Warning "Failed to query WMI of $Computer"
-                    Write-Warning $_.exception.message
+                    # Set boot variable to failed to quuery WMI
+                    $Boot = 'Failed to query.'
                 }
-            }   
+            }
             else {
-                Write-Output "$Computer is offline"
+                # Set boot variable to offline
+                $Boot = 'Offline'               
+            }
+            # Add to a PsCustomObject
+            [PsCustomObject]@{
+                ComputerDisplayName = $Computer
+                LastBootUpTime = $Boot
             }
         }
     }
-
     end {
         Write-Verbose "Script Complete..."
     }
