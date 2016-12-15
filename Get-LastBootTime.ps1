@@ -36,7 +36,7 @@
         # Loop through each computer in the ComputerName variable.
         foreach ($Computer in $ComputerName) {
             # Check if online
-            if (Test-Connection $Computer -count 1 -quiet) {
+            if (Test-Connection -ComputerName $Computer -count 1 -quiet) {
                 # Query WMI for the last boot time and add to a PsCustomObject
                 try {
                     $LastBootUpTime = Get-WmiObject Win32_OperatingSystem -ComputerName $Computer | Select -Exp LastBootUpTime -ErrorAction Stop
